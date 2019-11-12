@@ -24,7 +24,7 @@ main =
 
 
 
-type alias Model = {text:String, firstNumber:Float , sign:Signs, secondNumber:Float }
+type alias Model = {text:String, firstNumber:Float , sign:Signs }
 
 
 
@@ -33,37 +33,37 @@ init : Model
 init = Model "" 0 Sum 0
 
 
-
--- UPDATE
-
- 
   type Msg 
   = AddNumber String
   |AddOperator Signs
   |Delete 
   |Solve
   |Reset
-
+  
   type Signs 
   = Sum
   | Subtract
   | Divide
   | Multiply
+ 
+-- UPDATE
+
+  
 
 solve : Signs ->Float -> Float -> Float 
-solve sign firstNumber secondNumber  =
+solve sign a b  =
   case sign of
     Sum ->
-      firstNumber + secondNumber
+      a + b
 
     Substract ->
-      firstNumber - second number
+      a - b
 
     Divide ->
-      firstNumber/SecondNumber
+      a/b
 
     Multiply ->
-      firstNumber * SecondNumber
+      a * b
 
 
     
@@ -79,15 +79,18 @@ update msg model =
      {model|text  = ""}
 
     Solve ->
-      model.secondNumber = Maybe.withDefault 0 (String.toFloat model.text);
-      model.text = String.fromFloat (solve model.sign model.firstNumber model.secondNumber)
-       {model| firstNumber = 0, secondNumber = 0, sign = }
+      let
+        secondNumber = Maybe.withDefault 0 (String.toFloat model.text)
+      in
+        {model| firstNumber = 0,  
+        text = String.fromFloat (solve model.sign model.firstNumber secondNumber)}
 
     AddOperator selectedOperator-> 
-      {model| sign = selectedOperator , firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
+      {model| sign = selectedOperator , 
+      firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
 
     Reset ->
-      {model| Signs = }
+      {model| signs = Nothing, text = "", firstNumber = 0, secondNumber = 0}
 
 
 

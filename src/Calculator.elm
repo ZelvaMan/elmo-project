@@ -24,13 +24,9 @@ main =
 
 
 
-type alias Model = {text:String, firstNumber:Float , operator:Operator, secondNumber:Int}
+type alias Model = {text:String, firstNumber:Float , sign:Signs, secondNumber:Float }
 
-type Operator
-  = Sum
-  | Subtract
-  | Divide
-  | Multiply
+
 
 
 init : Model
@@ -41,13 +37,37 @@ init = Model "" 0 Sum 0
 -- UPDATE
 
  
-type Msg
+  type Msg 
   = AddNumber String
-  |AddOperator Operator
+  |AddOperator Signs
   |Delete 
   |Solve
+  |Reset
+
+  type Signs 
+  = Sum
+  | Subtract
+  | Divide
+  | Multiply
+
+solve : Signs ->Float -> Float -> Float 
+solve sign firstNumber secondNumber  =
+  case sign of
+    Sum ->
+      firstNumber + secondNumber
+
+    Substract ->
+      firstNumber - second number
+
+    Divide ->
+      firstNumber/SecondNumber
+
+    Multiply ->
+      firstNumber * SecondNumber
 
 
+    
+     
 
 update : Msg -> Model -> Model
 update msg model =
@@ -59,10 +79,15 @@ update msg model =
      {model|text  = ""}
 
     Solve ->
-      {model| text =  model.text}
+      model.secondNumber = Maybe.withDefault 0 (String.toFloat model.text);
+      model.text = String.fromFloat (solve model.sign model.firstNumber model.secondNumber)
+       {model| firstNumber = 0, secondNumber = 0, sign = }
 
     AddOperator selectedOperator-> 
-      {model| operator = selectedOperator , firstNumber = String.toInt text , text = ""}
+      {model| sign = selectedOperator , firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
+
+    Reset ->
+      {model| Signs = }
 
 
 
@@ -70,39 +95,11 @@ update msg model =
 
 
 view : Model -> Html Msg
-view model =
-   div []
-    [ 
-     div [] [ text  model.text ], 
-     div[][
-      button [ onClick (AddNumber "(") ] [ text "(" ],
-      button [onClick (AddNumber "(")] [text "("],
-      button[onClick Delete] [text "DEL"],
-      button[onClick(AddNumber"/")] [text "/"]
-     ],
-     div[][
-      button [ onClick (AddNumber "7") ] [ text "7" ],
-      button [onClick (AddNumber "8")] [text "8"],
-      button[onClick (AddNumber "9")] [text "9"],
-      button[onClick(AddNumber"*")] [text "*"]
-     ],
-     div[][
-      button [ onClick (AddNumber "4") ] [ text "4" ],
-      button [onClick (AddNumber "5")] [text "5"],
-      button[onClick (AddNumber "6")] [text "6"],
-      button[onClick(AddNumber"-")] [text "-"]
-     ],
-     div[][
-      button [ onClick (AddNumber "1") ] [ text "1" ],
-      button [onClick (AddNumber "2")] [text "2"],
-      button[onClick (AddNumber "3")] [text "3"],
-      button[onClick(AddNumber"+")] [text "+"]
-     ],
-     div[][
-      button [ ] [ text ":)" ],
-      button [onClick (AddNumber "0")] [text "0"],
-      button[onClick (AddNumber ".")] [text "."],
-      button[onClick Solve] [text "="]
-     ]
-     
-    ]
+view model = container []
+      [ columns columnsModifiers []
+        [ column columnModifiers [] [ text "First Column" ]
+        , column columnModifiers [] [ text "Second Column" ]
+        , column columnModifiers [] [ text "Third Column" ]
+        ]]
+  
+    

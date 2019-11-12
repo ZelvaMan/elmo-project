@@ -30,18 +30,16 @@ type alias Model = {text:String, firstNumber:Float , sign:Signs }
 
 
 init : Model
-init = Model "" 0 Sum 0
+init = Model "" 0 Sum 
 
 
-  type Msg 
-  = AddNumber String
+type Msg = AddNumber String
   |AddOperator Signs
   |Delete 
   |Solve
   |Reset
   
-  type Signs 
-  = Sum
+type Signs = Sum
   | Subtract
   | Divide
   | Multiply
@@ -56,7 +54,7 @@ solve sign a b  =
     Sum ->
       a + b
 
-    Substract ->
+    Subtract ->
       a - b
 
     Divide ->
@@ -90,7 +88,7 @@ update msg model =
       firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
 
     Reset ->
-      {model| signs = Nothing, text = "", firstNumber = 0, secondNumber = 0}
+      {model| signs = Sum, text = "", firstNumber = 0}
 
 
 

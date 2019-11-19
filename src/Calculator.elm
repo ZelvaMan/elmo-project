@@ -6,7 +6,10 @@ import Bulma.Modifiers exposing (..)
 import Bulma.Elements exposing (..)
 import Bulma.Columns exposing (..)
 import Bulma.Layout exposing (..)
-import Html exposing ( Html, main_, text)
+import Bulma.Components exposing (..)
+import Bulma.Form exposing(..)
+
+import Html exposing ( Html, main_, text, span)
 import Html.Events exposing (onClick)
 import Basics exposing (..)
 import Maybe exposing (Maybe(..))
@@ -88,7 +91,7 @@ update msg model =
       firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
 
     Reset ->
-      {model| signs = Sum, text = "", firstNumber = 0}
+      {model| sign = Sum, text = "", firstNumber = 0}
 
 
 
@@ -96,11 +99,50 @@ update msg model =
 
 
 view : Model -> Html Msg
-view model = container []
-      [ columns columnsModifiers []
-        [ column columnModifiers [] [ text "First Column" ]
-        , column columnModifiers [] [ text "Second Column" ]
-        , column columnModifiers [] [ text "Third Column" ]
-        ]]
-  
+view model
+ = main_ []
+    [ stylesheet
+    , myhero
+    
+    ]
+
+myhero : Html msg
+myhero 
+  = hero { heroModifiers | size = Medium, color = Light } []
+    [
+      heroHead [] [
+        navbar navbarModifiers []   [
+          
+          --  navbarBrand [] myNavbarBurger [
+          --      text "Calculator 2020"
+          --  ]
+          
+         ]
+        
+      ],
+       
+      heroBody []
+      [ columns {columnsModifiers |centered = True, multiline = True} [] [
+          column columnModifiers [] [
+            form
+          ]
+        ]
+      ]
+    ]
+        
+myNavbarBurger : Html Msg
+myNavbarBurger 
+  = navbarBurger True  []
+    [ span [] []
+    , span [] []
+    , span [] []
+    ]
+
+buttons : Html Msg
+buttons
+  = connectedFields Centered []
+  [
+
+  ]
+     
     

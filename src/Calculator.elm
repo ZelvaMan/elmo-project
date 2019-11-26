@@ -124,7 +124,10 @@ myhero
       heroBody []
       [ columns {columnsModifiers |centered = True, multiline = True} [] [
           column columnModifiers [] [
-            form
+            --telo kalkulacky
+          ],
+          column columnModifiers [] [
+            --historie
           ]
         ]
       ]
@@ -142,7 +145,19 @@ buttons : Html Msg
 buttons
   = connectedFields Centered []
   [
-
+    columns {columnsModifiers |centered = True, multiline = True, gap = Gap0} [] [
+      column myColumnModifiers [],
+      column myColumnModifiers [],  
+      column myColumnModifiers [],
+      column myColumnModifiers [],
+      column myColumnModifiers []            
+    ]
   ]
      
+myColumnModifiers : Html Msg
+myColumnModifiers
+  = {
+    offset = Width1,
+    widths = Devices( Just Width3) 
+  }
     

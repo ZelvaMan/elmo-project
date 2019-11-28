@@ -21,13 +21,13 @@ main =
 
 
 
-type alias Model = {text:String, firstNumber:Float , sign:Signs }
+type alias Model = {text:String, firstNumber:Float , sign:Signs , history : List String}
 
 
 
 
 init : Model
-init = Model "" 0 None 
+init = Model "" 0 None []
 
 
 type Msg = AddNumber String
@@ -44,20 +44,22 @@ type Signs = Sum
  
 -- UPDATE
 
+
+
 getTypeText : Signs -> String
 getTypeText sign  =
   case sign of
     Sum ->
-      "Sum"
+      "+"
 
     Subtract ->
-      "Subtract"
+      "-"
 
     Divide ->
-      "Divide"
+      "*"
 
     Multiply ->
-      "multiply"
+      "*"
 
     None ->
       "None"
@@ -87,11 +89,20 @@ solve mod  =
     f = mod.firstNumber
     s = Maybe.withDefault 0 (String.toFloat mod.text)
     msign = mod.sign
+    result = count f s msign
   in
-    {mod| text = String.fromFloat (count f s msign), sign = None, firstNumber = 0}  
+    {mod| text = String.fromFloat result, sign = None, firstNumber = 0,history =  (createHistoryString f s msign result)::mod.history}  
 
 
-    
+createHistoryString: Float -> Float -> Signs -> Float -> String
+createHistoryString first second sign result=
+  let  
+    f = String.fromFloat first
+    s = String.fromFloat second 
+    res = String.fromFloat result
+    sgn = getTypeText sign 
+  in
+   f ++ " " ++  sgn ++ " " ++ s ++ " = "++ res
      
 
 update : Msg -> Model -> Model
@@ -126,7 +137,11 @@ update msg model =
 
 
 -- VIEW
-
+renderList : List String -> Html msg
+renderList lst =
+    lst
+       |> List.map (li [] << List.singleton << text)
+       |> ul []
 
 view : Model -> Html Msg
 view model
@@ -149,8 +164,7 @@ myhero model
           myForm model
         ],
         div [class "column is-4"] [
-          text (String.fromFloat model.firstNumber),
-          text (getTypeText model.sign)
+           renderList model.history
         ]
       ]
     ],

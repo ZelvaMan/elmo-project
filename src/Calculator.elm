@@ -3,7 +3,7 @@ module Calculator exposing (..)
 import Browser
 
 import Html exposing (..)
-import Html.Events exposing (onClick,onInput)
+import Html.Events exposing (onClick)
 import Html.Attributes exposing(..)
 import Basics exposing (..)
 import Maybe exposing (Maybe(..))
@@ -21,13 +21,13 @@ main =
 
 
 
-type alias Model = {text:String, firstNumber:Float , sign:Signs , history : List String}
+type alias Model = {text:String, firstNumber:Float , sign:Signs , history : List String, scienceCalculator: Bool}
 
 
 
 
 init : Model
-init = Model "" 0 None []
+init = Model "" 0 None [] False
 
 
 type Msg = AddNumber String
@@ -38,6 +38,7 @@ type Msg = AddNumber String
   |Nothing
   |DeleteAll
   |ScienceOperation ScienceOperations
+  |ChangeCalculatorType
 
   
 type Signs = Sum
@@ -131,15 +132,13 @@ solveScience mod sOperation =
       {mod| text = String.fromFloat(6*f^2) , firstNumber = 0, sign = None}
 
     VSphere ->
-      {mod| text = String.fromFloat(0.75 * pi * f^ 3), firstNumber = 0, sign = None}
+      {mod| text = String.fromFloat(4/3 * pi * f^3), firstNumber = 0, sign = None}
 
     SSphere ->
-      {mod| text = String.fromFloat(4 * pi * f^ 2), firstNumber = 0, sign = None}
+      {mod| text = String.fromFloat(4 * pi * f^2), firstNumber = 0, sign = None}
 
     Factorial -> 
       {mod| text = String.fromInt(factorial (round  f)), firstNumber = 0, sign = None}
-
-
 
 createHistoryString: Float -> Float -> Signs -> Float -> String
 createHistoryString first second sign result=
@@ -151,43 +150,51 @@ createHistoryString first second sign result=
   in
    f ++ " " ++  sgn ++ " " ++ s ++ " = "++ res
      
+createSOHistoryStr: Float -> String -> String
+createSOHistoryStr f  function 
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
     AddNumber addChar ->
       {model | text= model.text ++ addChar}
-
+-----------------------
     DeleteText ->
      {model|text  = ""}
-
+-------------------------
     Solve ->
-      solveExpresion model
-
+      if model.sign == None then 
+        {model| history = model.text::model.history}
+      else
+        solveExpresion model
+----------------------------
     AddOperator selectedOperator->
     --poprve znamenka
       if model.sign == None then
         {model| sign = selectedOperator , 
         firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
-        
       else
         let
           result = count model.firstNumber (Maybe.withDefault 0 (String.toFloat model.text)) model.sign
         in
           {model| sign = selectedOperator , firstNumber =   result , text = ""}
 
-
+----------------------------------
     Reset ->
       {model| sign = None, text = "", firstNumber = 0}
-
+-------------------------
     ScienceOperation sOperation-> 
-      solveScience {model| firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""} sOperation 
-
+      solveScience {model|firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""} sOperation 
+------------------------
     DeleteAll ->
       {model| sign = None, text = "", firstNumber = 0, history = []}
-
+-----------------------------
     Nothing ->
       model
+---------------------------------------------------------
+    ChangeCalculatorType ->
+      {model|scienceCalculator = not model.scienceCalculator}
+
       
 
 
@@ -224,7 +231,7 @@ myhero model
     div [class "hero-body"] [
       div [class "columns is-fullwidth is-fullheight"] [
         div [class "column is-8"] [
-          calculator model True
+          calculator model 
         ],
         div [class "column is-4"] [
            renderList model.history
@@ -251,51 +258,63 @@ myNavbar
     ]
   ]
 
-calculator: Model ->Bool -> Html Msg
-calculator model science
+calculator: Model -> Html Msg
+calculator model 
   = div [class "container is-fullwidth is-fullheight"] [
-      input [ type_"text", class "input is-rounded is-fullwidth",  value model.text, readonly True][]
+    btn (if model.scienceCalculator == True then "switch to basic calculator" else "switch to science calculatr") ChangeCalculatorType,
+    input [ type_"text", class "input is-rounded is-fullwidth",  value model.text, readonly True][]
     ,
-    div [class "columns is-fullwidth  is-gapless is-mobile"] [
-      
-      div[class "column is-3"] [
-        if science == True then
-          btn "V 🧊" (ScienceOperation VCube)
-        else
-          btn " " Nothing,
-        btn "7" (AddNumber "7"),
-        btn "4" (AddNumber "4"),
-        btn "1" (AddNumber "1"),
-        btn "AC" DeleteAll
-      ],
-      div[class "column is-3"] [
-        if science == True then
-          btn "X!" (ScienceOperation Factorial)
-        else
-          btn " " Nothing,
-        btn "8" (AddNumber "8"),
-        btn "5" (AddNumber "5"),
-        btn "2" (AddNumber "2"),
-        btn "0" (AddNumber "0")
-      ],
-      div[class "column is-3"] [
-        btn "C" DeleteText,
-        btn "9" (AddNumber "9"),
-        btn "6" (AddNumber "6"),
-        btn "3" (AddNumber "3"),
-        btn "   " Nothing
-      ],
-      div[class "column is-3"] [
-        btn "/" (AddOperator Divide),
-        btn "*" (AddOperator Multiply),
-        btn "-" (AddOperator Subtract),
-        btn "+" (AddOperator Sum),
-        btn "=" Solve
+    table [class "table"] [
+      tbody [] [
+        if model.scienceCalculator == True then
+        tr [] [
+          tbtn "V 🧊" (ScienceOperation VCube),
+          tbtn "S  🧊" (ScienceOperation SCube),
+          tbtn "V 🔴" (ScienceOperation VSphere),
+          tbtn "S 🔴" (ScienceOperation SSphere)
+        ] else div[][]
+        ,
+        tr [] [
+          tbtn (if model.scienceCalculator == True then "x^n" else "  ")
+          (if model.scienceCalculator == True then AddOperator Xn else Nothing),
+          tbtn (if model.scienceCalculator == True then "X!" else "  ")
+          (if model.scienceCalculator == True then ScienceOperation Factorial else Nothing),
+          tbtn "C" DeleteText,
+          tbtn "/" (AddOperator Divide)
+        ],
+        tr [] [
+          tbtn "7" (AddNumber "7"),
+          tbtn "8" (AddNumber "8"),
+          tbtn "9" (AddNumber "9"),
+          tbtn "*" (AddOperator Multiply)
+        ],
+        tr [] [
+          tbtn "4" (AddNumber "4"),
+          tbtn "5" (AddNumber "5"),
+          tbtn "6" (AddNumber "6"),
+          tbtn "-" (AddOperator Subtract)
+        ],
+        tr [] [
+          tbtn "1" (AddNumber "1"),
+          tbtn "2" (AddNumber "2"),
+          tbtn "3" (AddNumber "3"),
+          tbtn "+" (AddOperator Sum)
+        ],
+        tr [] [
+          tbtn "AC" DeleteAll,
+          tbtn "0" (AddNumber "0"),
+          tbtn "   " Nothing,
+          tbtn "=" Solve
+        ]
       ]
-      
     ]
   ]
 
+tbtn: String -> Msg -> Html Msg
+tbtn txt msg
+  = th[] [
+    btn txt msg
+  ]
 
 btn : String -> Msg -> Html Msg
 btn txt msg 

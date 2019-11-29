@@ -1,0 +1,5 @@
+    vedecka kalkulacka
+x na n
+x! factorial
+objem a plocha krychle 
+objem a plocha koule

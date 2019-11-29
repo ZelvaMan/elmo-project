@@ -1,7 +1,7 @@
 module Calculator exposing (..)
 
 import Browser
-import Bulma.CDN exposing (..)
+
 import Html exposing (..)
 import Html.Events exposing (onClick,onInput)
 import Html.Attributes exposing(..)
@@ -32,16 +32,28 @@ init = Model "" 0 None []
 
 type Msg = AddNumber String
   |AddOperator Signs
-  |Delete 
+  |DeleteText 
   |Solve
   |Reset
+  |Nothing
+  |DeleteAll
+  |ScienceOperation ScienceOperations
+
   
 type Signs = Sum
-  | Subtract
-  | Divide
-  | Multiply
-  | None
+  |Subtract
+  |Divide
+  |Multiply
+  |Xn
+  |None
  
+
+type ScienceOperations = 
+   VCube
+  |SCube
+  |VSphere
+  |SSphere
+  |Factorial
 -- UPDATE
 
 
@@ -60,6 +72,9 @@ getTypeText sign  =
 
     Multiply ->
       "*"
+
+    Xn -> 
+      "^"
 
     None ->
       "None"
@@ -80,11 +95,12 @@ count f s sign
       Multiply ->
         f * s
 
-      None ->
-        0
+      xN -> 
+        f^s
 
-solve : Model -> Model 
-solve mod  =
+
+solveExpresion : Model -> Model 
+solveExpresion mod  =
   let 
     f = mod.firstNumber
     s = Maybe.withDefault 0 (String.toFloat mod.text)
@@ -92,6 +108,37 @@ solve mod  =
     result = count f s msign
   in
     {mod| text = String.fromFloat result, sign = None, firstNumber = 0,history =  (createHistoryString f s msign result)::mod.history}  
+
+
+
+factorial : Int -> Int
+factorial n =
+  if n < 1 then
+    1
+  else
+    n*factorial(n-1)
+solveScience : Model -> ScienceOperations -> Model
+solveScience mod sOperation =
+  let
+      f= mod.firstNumber
+  in
+  
+  case sOperation of 
+    VCube -> 
+      {mod| text = String.fromFloat(f^3), firstNumber = 0, sign = None}
+
+    SCube ->
+      {mod| text = String.fromFloat(6*f^2) , firstNumber = 0, sign = None}
+
+    VSphere ->
+      {mod| text = String.fromFloat(0.75 * pi * f^ 3), firstNumber = 0, sign = None}
+
+    SSphere ->
+      {mod| text = String.fromFloat(4 * pi * f^ 2), firstNumber = 0, sign = None}
+
+    Factorial -> 
+      {mod| text = String.fromInt(factorial (round  f)), firstNumber = 0, sign = None}
+
 
 
 createHistoryString: Float -> Float -> Signs -> Float -> String
@@ -111,11 +158,11 @@ update msg model =
     AddNumber addChar ->
       {model | text= model.text ++ addChar}
 
-    Delete ->
+    DeleteText ->
      {model|text  = ""}
 
     Solve ->
-      solve model
+      solveExpresion model
 
     AddOperator selectedOperator->
     --poprve znamenka
@@ -123,18 +170,34 @@ update msg model =
         {model| sign = selectedOperator , 
         firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
         
-      else           
-        let         
+      else
+        let
           result = count model.firstNumber (Maybe.withDefault 0 (String.toFloat model.text)) model.sign
         in
-          {model| sign = selectedOperator , 
-          firstNumber =   result , text = ""}
+          {model| sign = selectedOperator , firstNumber =   result , text = ""}
 
 
     Reset ->
       {model| sign = None, text = "", firstNumber = 0}
 
+    ScienceOperation sOperation-> 
+      solveScience {model| firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""} sOperation 
 
+    DeleteAll ->
+      {model| sign = None, text = "", firstNumber = 0, history = []}
+
+    Nothing ->
+      model
+      
+
+
+stylesheet: Html msg
+stylesheet =
+  node "link"
+  [ rel  "stylesheet"
+  , href "https://unpkg.com/bulma@0.8.0/css/bulma.min.css"
+  ]
+  []
 
 -- VIEW
 renderList : List String -> Html msg
@@ -161,7 +224,7 @@ myhero model
     div [class "hero-body"] [
       div [class "columns is-fullwidth is-fullheight"] [
         div [class "column is-8"] [
-          myForm model
+          calculator model True
         ],
         div [class "column is-4"] [
            renderList model.history
@@ -182,70 +245,60 @@ myNavbar
     div [ class "container"] [
       div [ class "navbar-brand"] [
         a [ class "navbar-item"][
-          h1 [] [text "Calculator 2077"]
+          h1 [] [text "calculator 2077"]
         ]
       ]
     ]
   ]
 
-myForm: Model -> Html Msg
-myForm model
-  = div [class "container"] [
+calculator: Model ->Bool -> Html Msg
+calculator model science
+  = div [class "container is-fullwidth is-fullheight"] [
       input [ type_"text", class "input is-rounded is-fullwidth",  value model.text, readonly True][]
     ,
-    div [class "columns is-fullwidth is-gapeless is-mobile"] [
+    div [class "columns is-fullwidth  is-gapless is-mobile"] [
+      
       div[class "column is-3"] [
-       btn "(",
-       nbtn "7",
-       nbtn "4",
-       nbtn "1",
-       btn ":D"
+        if science == True then
+          btn "V 🧊" (ScienceOperation VCube)
+        else
+          btn " " Nothing,
+        btn "7" (AddNumber "7"),
+        btn "4" (AddNumber "4"),
+        btn "1" (AddNumber "1"),
+        btn "AC" DeleteAll
       ],
       div[class "column is-3"] [
-        btn ")",
-        nbtn "8",
-        nbtn "5",
-        nbtn "2",
-        nbtn "0"
+        if science == True then
+          btn "X!" (ScienceOperation Factorial)
+        else
+          btn " " Nothing,
+        btn "8" (AddNumber "8"),
+        btn "5" (AddNumber "5"),
+        btn "2" (AddNumber "2"),
+        btn "0" (AddNumber "0")
       ],
       div[class "column is-3"] [
-       fbtn Delete "Del",
-       nbtn "9",
-       nbtn "6",
-       nbtn "3",
-       nbtn "."
+        btn "C" DeleteText,
+        btn "9" (AddNumber "9"),
+        btn "6" (AddNumber "6"),
+        btn "3" (AddNumber "3"),
+        btn "   " Nothing
       ],
       div[class "column is-3"] [
-        obtn "/" Divide,
-        obtn "*" Multiply,
-        obtn "-" Subtract,
-        obtn "+" Sum,
-        fbtn Solve "="
+        btn "/" (AddOperator Divide),
+        btn "*" (AddOperator Multiply),
+        btn "-" (AddOperator Subtract),
+        btn "+" (AddOperator Sum),
+        btn "=" Solve
       ]
       
     ]
   ]
 
-nbtn: String  -> Html Msg
-nbtn txt
-  = button [ class "button is-fullwidth", onClick (AddNumber txt)][
-    text txt
-   ]
 
-obtn: String -> Signs  -> Html Msg
-obtn txt sign
-  = button [ class "button is-fullwidth", onClick (AddOperator sign)][
+btn : String -> Msg -> Html Msg
+btn txt msg 
+  = button [class "button is fullwidth", onClick msg] [
     text txt
-   ]
-
-btn: String  -> Html Msg
-btn txt
-  = button [ class "button is-fullwidth"][
-    text txt
-   ]
-
-fbtn: Msg -> String -> Html Msg
-fbtn msg txt 
-  = button [ class "button is-fullwidth" ,onClick msg][
-    text txt
-   ]
+  ]

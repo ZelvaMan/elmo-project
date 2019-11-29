@@ -21,13 +21,13 @@ main =
 
 
 
-type alias Model = {text:String, firstNumber:Float , sign:Signs }
+type alias Model = {text:String, firstNumber:Float , sign:Signs , history : List String}
 
 
 
 
 init : Model
-init = Model "" 0 Sum 
+init = Model "" 0 None []
 
 
 type Msg = AddNumber String
@@ -40,28 +40,69 @@ type Signs = Sum
   | Subtract
   | Divide
   | Multiply
+  | None
  
 -- UPDATE
 
-  
 
-solve : Signs ->Float -> Float -> Float 
-solve sign a b  =
+
+getTypeText : Signs -> String
+getTypeText sign  =
   case sign of
     Sum ->
-      a + b
+      "+"
 
     Subtract ->
-      a - b
+      "-"
 
     Divide ->
-      a/b
+      "*"
 
     Multiply ->
-      a * b
+      "*"
+
+    None ->
+      "None"
+     
+
+count : Float -> Float ->  Signs -> Float
+count f s sign 
+  =     case sign of
+      Sum ->
+        f + s
+
+      Subtract ->
+        f - s
+
+      Divide ->
+        f/s
+
+      Multiply ->
+        f * s
+
+      None ->
+        0
+
+solve : Model -> Model 
+solve mod  =
+  let 
+    f = mod.firstNumber
+    s = Maybe.withDefault 0 (String.toFloat mod.text)
+    msign = mod.sign
+    result = count f s msign
+  in
+    {mod| text = String.fromFloat result, sign = None, firstNumber = 0,history =  (createHistoryString f s msign result)::mod.history}  
 
 
-    
+createHistoryString: Float -> Float -> Signs -> Float -> String
+createHistoryString first second sign result=
+  let  
+    f = String.fromFloat first
+    s = String.fromFloat second 
+    res = String.fromFloat result
+    sgn = getTypeText sign 
+  in
+   f ++ " " ++  sgn ++ " " ++ s ++ " = "++ res
      
 
 update : Msg -> Model -> Model
@@ -74,23 +115,33 @@ update msg model =
      {model|text  = ""}
 
     Solve ->
-      let
-        secondNumber = Maybe.withDefault 0 (String.toFloat model.text)
-      in
-        {model| firstNumber = 0,  
-        text = String.fromFloat (solve model.sign model.firstNumber secondNumber)}
+      solve model
 
-    AddOperator selectedOperator-> 
-      {model| sign = selectedOperator , 
-      firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
+    AddOperator selectedOperator->
+    --poprve znamenka
+      if model.sign == None then
+        {model| sign = selectedOperator , 
+        firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
+        
+      else           
+        let         
+          result = count model.firstNumber (Maybe.withDefault 0 (String.toFloat model.text)) model.sign
+        in
+          {model| sign = selectedOperator , 
+          firstNumber =   result , text = ""}
+
 
     Reset ->
-      {model| sign = Sum, text = "", firstNumber = 0}
+      {model| sign = None, text = "", firstNumber = 0}
 
 
 
 -- VIEW
-
+renderList : List String -> Html msg
+renderList lst =
+    lst
+       |> List.map (li [] << List.singleton << text)
+       |> ul []
 
 view : Model -> Html Msg
 view model
@@ -113,7 +164,7 @@ myhero model
           myForm model
         ],
         div [class "column is-4"] [
-          text "history"
+           renderList model.history
         ]
       ]
     ],

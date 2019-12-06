@@ -21,7 +21,11 @@ main =
 
 
 
-type alias Model = {text:String, firstNumber:Float , sign:Signs , history : List String, scienceCalculator: Bool}
+type alias Model = {text:String, 
+                    firstNumber:Float , 
+                    sign:Signs , 
+                    history : List String, 
+                    scienceCalculator: Bool}
 
 
 
@@ -96,8 +100,11 @@ count f s sign
       Multiply ->
         f * s
 
-      xN -> 
+      Xn -> 
         f^s
+
+      None ->
+        0
 
 
 solveExpresion : Model -> Model 
@@ -108,7 +115,7 @@ solveExpresion mod  =
     msign = mod.sign
     result = count f s msign
   in
-    {mod| text = String.fromFloat result, sign = None, firstNumber = 0,history =  (createHistoryString f s msign result)::mod.history}  
+    {mod| text = String.fromFloat result, sign = None, firstNumber = 0,history =  createHistoryString f s msign result::mod.history}  
 
 
 
@@ -126,19 +133,19 @@ solveScience mod sOperation =
   
   case sOperation of 
     VCube -> 
-      {mod| text = String.fromFloat(f^3), firstNumber = 0, sign = None}
+      {mod| text = String.fromFloat(f^3),history =  createSOHistoryStr f "V 🧊"::mod.history , firstNumber = 0, sign = None}
 
     SCube ->
-      {mod| text = String.fromFloat(6*f^2) , firstNumber = 0, sign = None}
+      {mod| text = String.fromFloat(6*f^2), history = createSOHistoryStr f "S 🧊"::mod.history , firstNumber = 0, sign = None}
 
     VSphere ->
-      {mod| text = String.fromFloat(4/3 * pi * f^3), firstNumber = 0, sign = None}
+      {mod| text = String.fromFloat(4/3 * pi * f^3) , history =  createSOHistoryStr f "V 🔴"::mod.history , firstNumber = 0, sign = None}
 
     SSphere ->
-      {mod| text = String.fromFloat(4 * pi * f^2), firstNumber = 0, sign = None}
+      {mod| text = String.fromFloat(4 * pi * f^2) , history = createSOHistoryStr f "S 🔴"::mod.history , firstNumber = 0, sign = None}
 
     Factorial -> 
-      {mod| text = String.fromInt(factorial (round  f)), firstNumber = 0, sign = None}
+      {mod| text = String.fromInt(factorial (round  f)) ,history = createSOHistoryStr f "!"::mod.history , firstNumber = 0, sign = None}
 
 createHistoryString: Float -> Float -> Signs -> Float -> String
 createHistoryString first second sign result=
@@ -150,8 +157,9 @@ createHistoryString first second sign result=
   in
    f ++ " " ++  sgn ++ " " ++ s ++ " = "++ res
      
-createSOHistoryStr: Float -> String -> String
-createSOHistoryStr f  function 
+createSOHistoryStr: Float -> String -> Float -> String
+createSOHistoryStr f  function res=
+  String.fromFloat f ++ " " ++ function 
 
 update : Msg -> Model -> Model
 update msg model =
@@ -169,7 +177,6 @@ update msg model =
         solveExpresion model
 ----------------------------
     AddOperator selectedOperator->
-    --poprve znamenka
       if model.sign == None then
         {model| sign = selectedOperator , 
         firstNumber = Maybe.withDefault 0 (String.toFloat model.text) , text = ""}
@@ -229,7 +236,7 @@ myhero model
       myNavbar
     ],
     div [class "hero-body"] [
-      div [class "columns is-fullwidth is-fullheight"] [
+      div [class "columns is-fullhd is-fullheight"] [
         div [class "column is-8"] [
           calculator model 
         ],
@@ -264,7 +271,7 @@ calculator model
     btn (if model.scienceCalculator == True then "switch to basic calculator" else "switch to science calculatr") ChangeCalculatorType,
     input [ type_"text", class "input is-rounded is-fullwidth",  value model.text, readonly True][]
     ,
-    table [class "table"] [
+    table [class "table is-fullwidth"] [
       tbody [] [
         if model.scienceCalculator == True then
         tr [] [
